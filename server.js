@@ -14,7 +14,9 @@ app.use(cors());
 app.use('/init', init);
 app.use('/', routes);
 
+const taskRoutes = require('./routes/taskRoutes');
 
+app.use('/tasks', taskRoutes);
 
 app.listen(PORT, (error) => {
     if (error) {
