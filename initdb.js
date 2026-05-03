@@ -44,8 +44,8 @@ router.get('/', async (req, res) => {
     //  Beispieldaten für Putzaufgaben einfügen (user_id 1 = Mama, 2 = Papa, 3 = Kind1)
     const tasks = [
         ['Küche putzen','Arbeitsfläche reinigen und Boden wischen', 'open', 1],
-        ['Müll rausbringen','Restmüll und Papiermüll rausbringen', 'open', 3],
-        ['Staubsaugen','Wohnzimmer und Flur saugen', 'open', 2]
+        ['Müll rausbringen','Restmüll und Papiermüll rausbringen', 'open', 2],
+        ['Staubsaugen','Wohnzimmer und Flur saugen', 'open', 3]
     ];
      const tasksQuery = format(
             'INSERT INTO tasks (title, description, status, user_id) VALUES %L RETURNING *',
