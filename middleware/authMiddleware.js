@@ -21,3 +21,13 @@ exports.verifyToken = (req, res, next) => {
         res.send({ message: 'Invalid token' });
     }
 };
+
+exports.verifyAdmin = (req, res, next) => {
+    if (req.user.role !== 'admin') {
+        res.status(403);
+        res.send({ message: 'Only admins allowed' });
+        return;
+    }
+
+    next();
+};
