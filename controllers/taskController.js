@@ -52,7 +52,7 @@ exports.updateTask = async (req, res) => {
         const taskResult = await client.query(
             'SELECT * FROM tasks WHERE id = $1',
             [taskId]
-        ); 
+        );
 
         if (taskResult.rowCount === 0) {
             res.status(404);
@@ -81,10 +81,6 @@ exports.updateTask = async (req, res) => {
 
 exports.deleteTask = async (req, res) => {
     try {
-        await client.query(
-            'DELETE FROM tasks WHERE id = $1',
-            [req.params.id]
-        );
 
         const result = await client.query(
             'DELETE FROM tasks WHERE id = $1 RETURNING *',
@@ -97,10 +93,15 @@ exports.deleteTask = async (req, res) => {
             return;
         }
 
-        res.status(200).send({ message: 'Gelöscht' });
+       res.status(200);
+        res.send({
+            message: 'Aufgabe gelöscht',
+            task: result.rows[0]
+        });
     } catch (err) {
         console.log(err);
-        res.status(500).send({ error: 'Fehler beim Löschen' });
+        res.status(500);
+        res.send({ error: 'Fehler beim Löschen' });
     }
 };
 
