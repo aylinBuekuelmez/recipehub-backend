@@ -1,5 +1,6 @@
 const client = require('../db');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 exports.registerUser = async (req, res) => {
     try {
@@ -38,5 +39,53 @@ exports.registerUser = async (req, res) => {
         console.log(err);
         res.status(500);
         res.send({ error: 'Fehler bei der Registrierung' });
+    }
+};
+
+exports.loginUser = async (req, res) => {
+    try {
+        const username = req.body.username;
+        const password = req.body.password;
+
+        const result = await client.query(
+            'SELECT * FROM users WHERE username = $1',
+            [username]
+        );
+
+        if (result.rowCount === 0) {
+            res.status(401);
+            res.send({ message: 'username/password wrong' });
+            return;
+        }
+
+        const user = result.rows[0];
+        const match = await bcrypt.compare(password, user.password);
+
+        if (!match) {
+            res.status(401);
+            res.send({ message: 'username/password wrong' });
+            return;
+        }
+
+        const userWithoutPassword = {
+            id: user.id,
+            username: user.username,
+            role: user.role
+        };
+
+        const token = jwt.sign(
+            userWithoutPassword,
+            process.env.JWT_SECRET
+        );
+
+        res.status(200);
+        res.send({
+            token: token,
+            user: userWithoutPassword
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500);
+        res.send({ error: 'Fehler beim Login' });
     }
 };
