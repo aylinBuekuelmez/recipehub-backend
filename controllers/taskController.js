@@ -46,18 +46,31 @@ exports.createTask = async (req, res) => {
 
 exports.updateTask = async (req, res) => {
     try {
+        const taskId = req.params.id;
         const { title, description, status } = req.body;
 
-        const result = await client.query(
-            'UPDATE tasks SET title = $1, description = $2, status = $3 WHERE id = $4 RETURNING *',
-            [title, description, status, req.params.id]
-        );
+        const taskResult = await client.query(
+            'SELECT * FROM tasks WHERE id = $1',
+            [taskId]
+        ); 
 
-        if (result.rowCount === 0) {
+        if (taskResult.rowCount === 0) {
             res.status(404);
             res.send({ error: 'Aufgabe nicht gefunden' });
             return;
         }
+
+        const task = taskResult.rows[0];
+        if (req.user.role !== 'admin' && task.user_id !== req.user.id) {
+            res.status(403);
+            res.send({ message: 'Keine Berechtigung' });
+            return;
+        }
+
+        const result = await client.query(
+            'UPDATE tasks SET title = $1, description = $2, status = $3 WHERE id = $4 RETURNING *',
+            [title, description, status, taskId]
+        );
 
         res.status(200).send(result.rows[0]);
     } catch (err) {

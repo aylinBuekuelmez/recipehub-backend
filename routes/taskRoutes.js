@@ -6,7 +6,11 @@ const authMiddleware = require('../middleware/authMiddleware');
 router.get('/', taskController.getAllTasks);
 router.get('/my-tasks', authMiddleware.verifyToken, taskController.getMyTasks);
 router.get('/:id', taskController.getTaskById);
-router.put('/:id', taskController.updateTask);
+router.put(
+    '/:id',
+    authMiddleware.verifyToken,
+    taskController.updateTask
+);
 
 router.post(
     '/',
