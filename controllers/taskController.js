@@ -17,10 +17,10 @@ exports.getTaskById = async (req, res) => {
             [req.params.id]
         );
         if (result.rowCount === 0) {
-    res.status(404);
-    res.send({ error: 'Aufgabe nicht gefunden' });
-    return;
-}
+            res.status(404);
+            res.send({ error: 'Aufgabe nicht gefunden' });
+            return;
+        }
         res.status(200).send(result.rows[0]);
     } catch (err) {
         console.log(err);
@@ -53,6 +53,12 @@ exports.updateTask = async (req, res) => {
             [title, description, status, req.params.id]
         );
 
+        if (result.rowCount === 0) {
+            res.status(404);
+            res.send({ error: 'Aufgabe nicht gefunden' });
+            return;
+        }
+
         res.status(200).send(result.rows[0]);
     } catch (err) {
         console.log(err);
@@ -66,6 +72,17 @@ exports.deleteTask = async (req, res) => {
             'DELETE FROM tasks WHERE id = $1',
             [req.params.id]
         );
+
+        const result = await client.query(
+            'DELETE FROM tasks WHERE id = $1 RETURNING *',
+            [req.params.id]
+        );
+
+        if (result.rowCount === 0) {
+            res.status(404);
+            res.send({ error: 'Aufgabe nicht gefunden' });
+            return;
+        }
 
         res.status(200).send({ message: 'Gelöscht' });
     } catch (err) {
