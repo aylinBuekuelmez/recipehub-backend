@@ -90,3 +90,19 @@ exports.deleteTask = async (req, res) => {
         res.status(500).send({ error: 'Fehler beim Löschen' });
     }
 };
+
+exports.getMyTasks = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const result = await client.query(
+            'SELECT * FROM tasks WHERE user_id = $1',
+            [userId]
+        );
+
+        res.status(200).send(result.rows);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ error: 'Fehler beim Laden der Tasks' });
+    }
+};
