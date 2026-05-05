@@ -89,3 +89,18 @@ exports.loginUser = async (req, res) => {
         res.send({ error: 'Fehler beim Login' });
     }
 };
+
+exports.getAllUsers = async (req, res) => {
+    try {
+        const result = await client.query(
+            'SELECT id, username, role FROM users ORDER BY id'
+        );
+
+        res.status(200);
+        res.send(result.rows);
+    } catch (err) {
+        console.log(err);
+        res.status(500);
+        res.send({ error: 'Fehler beim Laden der Nutzer' });
+    }
+};
