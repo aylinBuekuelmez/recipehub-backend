@@ -32,6 +32,12 @@ exports.createTask = async (req, res) => {
     try {
         const { title, description, user_id } = req.body;
 
+        if (!title || !user_id) {
+            res.status(400);
+            res.send({ message: 'Titel und User-ID müssen angegeben werden' });
+            return;
+        }
+
         const result = await client.query(
             'INSERT INTO tasks (title, description, status, user_id) VALUES ($1, $2, $3, $4) RETURNING *',
             [title, description, 'open', user_id]
@@ -93,7 +99,7 @@ exports.deleteTask = async (req, res) => {
             return;
         }
 
-       res.status(200);
+        res.status(200);
         res.send({
             message: 'Aufgabe gelöscht',
             task: result.rows[0]

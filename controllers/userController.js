@@ -8,6 +8,12 @@ exports.registerUser = async (req, res) => {
         const password = req.body.password;
         const role = 'user';
 
+        if (!username || !password) {
+            res.status(400);
+            res.send({ message: 'Username und Passwort müssen angegeben werden' });
+            return;
+        }
+
         const check = await client.query(
             'SELECT * FROM users WHERE username = $1',
             [username]
@@ -46,6 +52,12 @@ exports.loginUser = async (req, res) => {
     try {
         const username = req.body.username;
         const password = req.body.password;
+
+        if (!username || !password) {
+            res.status(400);
+            res.send({ message: 'Username und Passwort müssen angegeben werden' });
+            return;
+        }
 
         const result = await client.query(
             'SELECT * FROM users WHERE username = $1',
