@@ -3,9 +3,20 @@ const router = express.Router();
 const taskController = require('../controllers/taskController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-router.get('/', taskController.getAllTasks);
-router.get('/my-tasks', authMiddleware.verifyToken, taskController.getMyTasks);
-router.get('/:id', taskController.getTaskById);
+router.get(
+    '/',
+    authMiddleware.verifyToken,
+    authMiddleware.verifyAdmin,
+    taskController.getAllTasks
+);
+router.get('/my-tasks',
+    authMiddleware.verifyToken,
+    taskController.getMyTasks);
+router.get(
+    '/:id',
+    authMiddleware.verifyToken,
+    taskController.getTaskById
+);
 router.put(
     '/:id',
     authMiddleware.verifyToken,
