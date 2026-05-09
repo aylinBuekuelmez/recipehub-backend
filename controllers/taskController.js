@@ -21,6 +21,14 @@ exports.getTaskById = async (req, res) => {
             res.send({ error: 'Aufgabe nicht gefunden' });
             return;
         }
+
+        const task = result.rows[0];
+
+        if (req.user.role !== 'admin' && task.user_id !== req.user.id) {
+            res.status(403);
+            res.send({ message: 'Keine Berechtigung' });
+            return;
+        }
         res.status(200).send(result.rows[0]);
     } catch (err) {
         console.log(err);
