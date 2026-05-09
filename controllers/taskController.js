@@ -74,7 +74,8 @@ exports.updateTask = async (req, res) => {
             return;
         }
 
-        const task = taskResult.rows[0];
+         const task = taskResult.rows[0];
+
         if (req.user.role !== 'admin' && task.user_id !== req.user.id) {
             res.status(403);
             res.send({ message: 'Keine Berechtigung' });
@@ -89,7 +90,7 @@ exports.updateTask = async (req, res) => {
         res.status(200).send(result.rows[0]);
     } catch (err) {
         console.log(err);
-        res.status(500).send({ error: 'Fehler beim Aktualisieren' });
+        res.status(500).send({ error: 'Fehler beim Aktualisieren der Aufgabe' });
     }
 };
 
@@ -115,7 +116,7 @@ exports.deleteTask = async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500);
-        res.send({ error: 'Fehler beim Löschen' });
+        res.send({ error: 'Fehler beim Löschen der Aufgabe' });
     }
 };
 
