@@ -87,7 +87,8 @@ exports.loginUser = async (req, res) => {
 
         const token = jwt.sign(
             userWithoutPassword,
-            process.env.JWT_SECRET
+            process.env.JWT_SECRET,
+            { expiresIn: '2h' }
         );
 
         res.status(200);
