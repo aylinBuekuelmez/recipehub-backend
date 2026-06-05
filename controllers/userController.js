@@ -117,3 +117,25 @@ exports.getAllUsers = async (req, res) => {
         res.send({ error: 'Fehler beim Laden der Nutzer' });
     }
 };
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const result = await client.query(
+            'DELETE FROM users WHERE id = $1 RETURNING *',
+            [req.params.id]
+        );
+
+        if (result.rowCount === 0) {
+            res.status(404);
+            res.send({ error: 'Nutzer nicht gefunden' });
+            return;
+        }
+
+        res.status(200);
+        res.send({ message: 'Nutzer gelöscht', user: result.rows[0] });
+    } catch (err) {
+        console.log(err);
+        res.status(500);
+        res.send({ error: 'Fehler beim Löschen des Nutzers' });
+    }
+};

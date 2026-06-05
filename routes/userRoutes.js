@@ -16,4 +16,11 @@ router.get(
     authMiddleware.verifyAdmin,
     userController.getAllUsers
 );
+
+router.delete(
+    '/:id',
+    authMiddleware.verifyToken,
+    authMiddleware.verifyAdmin,
+    userController.deleteUser
+);
 module.exports = router;
