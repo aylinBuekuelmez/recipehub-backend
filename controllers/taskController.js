@@ -1,137 +1,145 @@
 const client = require('../db');
 
-exports.getAllTasks = async (req, res) => {
+exports.getAllRecipes = async (req, res) => {
     try {
-        const result = await client.query('SELECT * FROM tasks');
+        const categoryId = req.query.category;
+        let result;
+
+        if (categoryId) {
+            result = await client.query(
+                'SELECT * FROM recipes WHERE category_id = $1 ORDER BY id DESC',
+                [categoryId]
+            );
+        } else {
+            result = await client.query('SELECT * FROM recipes ORDER BY id DESC');
+        }
         res.status(200).send(result.rows);
     } catch (err) {
         console.log(err);
-        res.status(500).send({ error: 'Fehler beim Laden der Tasks' });
+        res.status(500).send({ error: 'Fehler beim Laden der Rezepte' });
     }
 };
 
-exports.getTaskById = async (req, res) => {
+exports.getRecipeById = async (req, res) => {
     try {
         const result = await client.query(
-            'SELECT * FROM tasks WHERE id = $1',
+            'SELECT * FROM recipes WHERE id = $1',
             [req.params.id]
         );
         if (result.rowCount === 0) {
             res.status(404);
-            res.send({ error: 'Aufgabe nicht gefunden' });
+            res.send({ error: 'Rezept nicht gefunden' });
             return;
         }
 
-        const task = result.rows[0];
 
-        if (req.user.role !== 'admin' && task.user_id !== req.user.id) {
-            res.status(403);
-            res.send({ message: 'Keine Berechtigung' });
-            return;
-        }
         res.status(200).send(result.rows[0]);
     } catch (err) {
         console.log(err);
-        res.status(500).send({ error: 'Fehler beim Laden der Aufgabe' });
+        res.status(500).send({ error: 'Fehler beim Laden des Rezepts' });
     }
 };
 
-exports.createTask = async (req, res) => {
+exports.createRecipe = async (req, res) => {
     try {
-        const { title, description, user_id } = req.body;
+        const { title, description, ingredients, category_id, user_id } = req.body;
+        const userId = req.user.id;
 
-        if (!title || !user_id) {
-            res.status(400);
-            res.send({ message: 'Titel und User-ID müssen angegeben werden' });
-            return;
-        }
+
 
         const result = await client.query(
-            'INSERT INTO tasks (title, description, status, user_id) VALUES ($1, $2, $3, $4) RETURNING *',
-            [title, description, 'open', user_id]
+            'INSERT INTO recipes (title, description, ingredients, category_id, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [title, description, ingredients, category_id, userId]
         );
 
         res.status(201).send(result.rows[0]);
     } catch (err) {
         console.log(err);
-        res.status(500).send({ error: 'Fehler beim Erstellen der Aufgabe' });
+        res.status(500).send({ error: 'Fehler beim Erstellen des Rezepts' });
     }
 };
 
-exports.updateTask = async (req, res) => {
+exports.updateRecipe = async (req, res) => {
     try {
-        const taskId = req.params.id;
-        const { title, description, status } = req.body;
+        const recipeId = req.params.id;
+        const recipeId = req.params.id;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        const { title, description, ingredients, category_id } = req.body;
 
-        const taskResult = await client.query(
-            'SELECT * FROM tasks WHERE id = $1',
-            [taskId]
+        const checkResult = await client.query(
+            'SELECT * FROM recipes WHERE id = $1',
+            [recipeId]
         );
 
-        if (taskResult.rowCount === 0) {
+        if (checkResult.rowCount === 0) {
             res.status(404);
-            res.send({ error: 'Aufgabe nicht gefunden' });
+            res.send({ error: 'Rezept nicht gefunden' });
             return;
         }
 
-         const task = taskResult.rows[0];
+        if (checkResult.rowCount === 0) {
+            res.status(404);
+            res.send({ error: 'Rezept nicht gefunden' });
+            return;
+        }
 
-        if (req.user.role !== 'admin' && task.user_id !== req.user.id) {
+        if (checkResult.rows[0].user_id !== userId && userRole !== 'admin') {
             res.status(403);
             res.send({ message: 'Keine Berechtigung' });
             return;
         }
 
         const result = await client.query(
-            'UPDATE tasks SET title = $1, description = $2, status = $3 WHERE id = $4 RETURNING *',
-            [title, description, status, taskId]
+            'UPDATE recipes SET title = $1, description = $2, ingredients = $3, category_id = $4 WHERE id = $5 RETURNING *',
+            [title, description, ingredients, category_id, recipeId]
         );
 
         res.status(200).send(result.rows[0]);
     } catch (err) {
         console.log(err);
-        res.status(500).send({ error: 'Fehler beim Aktualisieren der Aufgabe' });
+        res.status(500).send({ error: 'Fehler beim Aktualisieren des Rezepts' });
     }
 };
 
-exports.deleteTask = async (req, res) => {
+exports.deleteRecipe = async (req, res) => {
     try {
 
-        const result = await client.query(
-            'DELETE FROM tasks WHERE id = $1 RETURNING *',
-            [req.params.id]
+        const recipeId = req.params.id;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        const checkResult = await client.query(
+            'SELECT * FROM recipes WHERE id = $1',
+            [recipeId]
         );
 
-        if (result.rowCount === 0) {
+        if (checkResult.rowCount === 0) {
             res.status(404);
-            res.send({ error: 'Aufgabe nicht gefunden' });
+            res.send({ error: 'Rezept nicht gefunden' });
             return;
         }
 
+        if (checkResult.rows[0].user_id !== userId && userRole !== 'admin') {
+            res.status(403);
+            res.send({ error: 'Keine Berechtigung' });
+            return;
+        }
+
+        await client.query(
+            'DELETE FROM recipes WHERE id = $1 RETURNING *',
+            [recipeId]
+        );
+
         res.status(200);
         res.send({
-            message: 'Aufgabe gelöscht',
-            task: result.rows[0]
+            message: 'Rezept gelöscht',
+
         });
     } catch (err) {
         console.log(err);
         res.status(500);
-        res.send({ error: 'Fehler beim Löschen der Aufgabe' });
+        res.send({ error: 'Fehler beim Löschen des Rezepts' });
     }
 };
 
-exports.getMyTasks = async (req, res) => {
-    try {
-        const userId = req.user.id;
-
-        const result = await client.query(
-            'SELECT * FROM tasks WHERE user_id = $1',
-            [userId]
-        );
-
-        res.status(200).send(result.rows);
-    } catch (err) {
-        console.log(err);
-        res.status(500).send({ error: 'Fehler beim Laden der Tasks' });
-    }
-};
