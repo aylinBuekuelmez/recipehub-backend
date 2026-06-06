@@ -62,7 +62,6 @@ exports.createRecipe = async (req, res) => {
 exports.updateRecipe = async (req, res) => {
     try {
         const recipeId = req.params.id;
-        const recipeId = req.params.id;
         const userId = req.user.id;
         const userRole = req.user.role;
         const { title, description, ingredients, category_id } = req.body;
