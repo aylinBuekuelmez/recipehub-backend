@@ -6,11 +6,12 @@ const bcrypt = require('bcrypt');
 
 router.get('/', async (req, res) => {
     try {
-    await client.query('DROP TABLE IF EXISTS tasks CASCADE');
-    await client.query('DROP TABLE IF EXISTS users CASCADE');
+        await client.query('DROP TABLE IF EXISTS recipes CASCADE');
+        await client.query('DROP TABLE IF EXISTS categories CASCADE');
+        await client.query('DROP TABLE IF EXISTS users CASCADE');
 
-    // Tabelle 'users' (Familienmitglieder) erstellen
-    await client.query(`
+        // Tabelle 'users' (Familienmitglieder) erstellen
+        await client.query(`
         CREATE TABLE users (
             id SERIAL PRIMARY KEY,
             username VARCHAR(50) UNIQUE NOT NULL,
@@ -19,39 +20,53 @@ router.get('/', async (req, res) => {
         )
     `);
 
-    // Tabelle 'tasks' (Putzaufgaben) erstellen, verknüpft mit users(id)
-    await client.query(`
-        CREATE TABLE tasks (
+        await client.query(`
+            CREATE TABLE categories (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) UNIQUE NOT NULL
+            )
+        `);
+
+        await client.query(`
+        CREATE TABLE recipes (
             id SERIAL PRIMARY KEY,
             title VARCHAR(100) NOT NULL,
             description VARCHAR(255),
-            status VARCHAR(20) DEFAULT 'open',
+            ingredients VARCHAR(500),
+         category_id INTEGER REFERENCES categories(id),
             user_id INTEGER REFERENCES users(id)
         )
     `);
 
-    const passwordMama = await bcrypt.hash('geheim123', 10);
-    const passwordPapa = await bcrypt.hash('geheim123', 10);
-    const passwordKind1 = await bcrypt.hash('geheim123', 10);
+        const passwordAdmin = await bcrypt.hash('geheim123', 10);
+        const passwordUser1 = await bcrypt.hash('geheim123', 10);
+        const passwordUser2 = await bcrypt.hash('geheim123', 10);
 
-    const users = [
-        ['Mama', passwordMama, 'admin'],
-        ['Papa', passwordPapa, 'admin'],
-        ['Kind1', passwordKind1, 'user']
-    ];
-    await client.query(format('INSERT INTO users (username, password, role) VALUES %L', users));
+        const users = [
+            ['admin', passwordAdmin, 'admin'],
+            ['anna', passwordUser1, 'user'],
+            ['ben', passwordUser2, 'user']
+        ];
+        await client.query(format('INSERT INTO users (username, password, role) VALUES %L', users));
+        const categories = [
+            ['Türkische Küche'],
+            ['Italienische Küche'],
+            ['Vegan & Vegetarisch']
+        ];
+        await client.query(format('INSERT INTO categories (name) VALUES %L', categories));
 
-    //  Beispieldaten für Putzaufgaben einfügen (user_id 1 = Mama, 2 = Papa, 3 = Kind1)
-    const tasks = [
-        ['Küche putzen','Arbeitsfläche reinigen und Boden wischen', 'open', 1],
-        ['Müll rausbringen','Restmüll und Papiermüll rausbringen', 'open', 2],
-        ['Staubsaugen','Wohnzimmer und Flur saugen', 'open', 3]
-    ];
-     const tasksQuery = format(
-            'INSERT INTO tasks (title, description, status, user_id) VALUES %L RETURNING *',
-            tasks
+        const recipes = [
+            ['Mercimek Çorbası', 'Klassische türkische Linsensuppe', 'Rote Linsen, Zwiebel, Knoblauch, Kreuzkümmel, Paprika', 1, 2],
+            ['Lahmacun', 'Türkische Fladenbrot-Pizza', 'Fladenbrot, Hackfleisch, Tomate, Zwiebel, Petersilie', 1, 3],
+            ['Spaghetti Carbonara', 'Cremige Pasta ohne Sahne', 'Spaghetti, Eier, Pecorino, Guanciale, Pfeffer', 2, 2],
+            ['Pizza Margherita', 'Klassiker aus Neapel', 'Pizzateig, Tomatensoße, Mozzarella, Basilikum', 2, 3],
+            ['Avocado Toast', 'Schnelles veganes Frühstück', 'Vollkornbrot, Avocado, Zitrone, Chiliflocken', 3, 2],
+            ['Vegane Bolognese', 'Bolognese mit Linsen statt Fleisch', 'Linsen, Tomaten, Karotten, Sellerie, Spaghetti', 3, 3]
+        ];
+        const result = await client.query(
+            format('INSERT INTO recipes (title, description, ingredients, category_id, user_id) VALUES %L RETURNING *', recipes)
         );
-       const result = await client.query(tasksQuery);
+
 
         res.status(200);
         res.send({
