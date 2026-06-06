@@ -14,9 +14,11 @@ app.use(cors());
 app.use('/init', init);
 app.use('/users', userRoutes);
 
-const taskRoutes = require('./routes/taskRoutes');
+const recipeRoutes = require('./routes/recipeRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
-app.use('/tasks', taskRoutes);
+app.use('/recipes', recipeRoutes);
+app.use('/categories', categoryRoutes);
 
 app.listen(PORT, (error) => {
     if (error) {
