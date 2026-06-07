@@ -14,8 +14,8 @@ app.use(cors());
 app.use('/init', init);
 app.use('/users', userRoutes);
 
-const recipeRoutes = require('./routes/recipeRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
+const recipeRoutes = require('./routes/recipeRoutes.js');
+const categoryRoutes = require('./routes/categoryRoutes.js');
 
 app.use('/recipes', recipeRoutes);
 app.use('/categories', categoryRoutes);

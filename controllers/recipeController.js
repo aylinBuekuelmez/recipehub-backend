@@ -77,12 +77,6 @@ exports.updateRecipe = async (req, res) => {
             return;
         }
 
-        if (checkResult.rowCount === 0) {
-            res.status(404);
-            res.send({ error: 'Rezept nicht gefunden' });
-            return;
-        }
-
         if (checkResult.rows[0].user_id !== userId && userRole !== 'admin') {
             res.status(403);
             res.send({ message: 'Keine Berechtigung' });
